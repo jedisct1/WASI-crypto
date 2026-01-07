@@ -235,7 +235,7 @@ In addition, an implementation MAY allow these signatures to be serialized using
 
 |           | Signature key pair                                                                                 | Secret key                                                | Public key                                                |
 | --------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------- |
-| Ed25519   | raw (private key + secret key encoded as in RFC8032)                                               | raw (cf. RFC8032)                                         | raw (cf. RFC8032)                                         |
+| Ed25519   | raw (private key + public key encoded as in RFC8032)                                               | raw (cf. RFC8032)                                         | raw (cf. RFC8032)                                         |
 | X25519    | N/A                                                                                                | raw (cf. RFC7748)                                         | raw (cf. RFC7748)                                         |
 | p256      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
 | p384      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
@@ -244,11 +244,11 @@ In addition, an implementation MAY allow these signatures to be serialized using
 
 ## Array outputs
 
-Functions returning arrays whose size is not constant or too large to be safely allocated on the stack return a handle to an `array_ouptut` type.
+Functions returning arrays whose size is not constant or too large to be safely allocated on the stack return a handle to an `array_output` type.
 
-Applications can obtain the length of the output (in bytes) using the `array_ouptut_len()` function, and/or copy the content using `array_output_pull()`.
+Applications can obtain the length of the output (in bytes) using the `array_output_len()` function, and/or copy the content using `array_output_pull()`.
 
-Multiple calls to `array_output_pull()` are possible, so that large ouputs can be copied in a streaming fashion. The total number of bytes to be read is guaranteed to always match the value returned by `array_output_len()`. `array_output_pull()` never blocks, and always fills `min(requested_length, available_length)` bytes, returning the actual number of bytes having been copied.
+Multiple calls to `array_output_pull()` are possible, so that large outputs can be copied in a streaming fashion. The total number of bytes to be read is guaranteed to always match the value returned by `array_output_len()`. `array_output_pull()` never blocks, and always fills `min(requested_length, available_length)` bytes, returning the actual number of bytes having been copied.
 
 The handle is automatically closed after all the data has been consumed, so this type doesn't have a `close()` function.
 
@@ -361,7 +361,7 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | `RSA_PSS_2048_SHA256`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-256 hash function   |
 | `RSA_PSS_2048_SHA384`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-384 hash function   |
 | `RSA_PSS_2048_SHA512`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-512 hash function   |
-| `RSA_PSS_3072_SHA384`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-384 hash function   |
+| `RSA_PSS_3072_SHA384`   | RSA signatures with a 3072 bit modulus, PSS padding and the SHA-384 hash function   |
 | `RSA_PSS_3072_SHA512`   | RSA signatures with a 3072 bit modulus, PSS padding and the SHA-512 hash function   |
 | `RSA_PSS_4096_SHA512`   | RSA signatures with a 4096 bit modulus, PSS padding and the SHA-512 hash function   |
 | `P256-SHA256`           | NIST p256 ECDH with the SHA-256 hash function                                       |
@@ -411,7 +411,7 @@ Each algorithm belongs to one of these categories, represented by the `algorithm
 
 * `signatures` for signature systems
 * `symmetric` for any symmetric primitive or construction
-* `key_exhange` for key exchange mechanisms, including DH-based systems and KEMs.
+* `key_exchange` for key exchange mechanisms, including DH-based systems and KEMs.
 
 Implementations are not limited to the algorithms listed above. An implementation can include additional algorithms, and the set of required algorithms will be revisited in every revision of the specification.
 
@@ -465,7 +465,7 @@ let pk_handle = publickey_import(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA2
 
 A public key that deserializes successfully might not be safe to use with all protocols. In particular, when using elliptic curves, point coordinates may not be on the curve, or may not be on the main subgroup.
 
-Applications can validate a public key with the `publickey_verify()` function. If a public key type doesn't need validation, the function MUST return a sucessful return code. If a public key MAY need validation to be safe to use, but a verification hasn't been implemented yet, the function MUST return a `not_implemented` error code.
+Applications can validate a public key with the `publickey_verify()` function. If a public key type doesn't need validation, the function MUST return a successful return code. If a public key MAY need validation to be safe to use, but a verification hasn't been implemented yet, the function MUST return a `not_implemented` error code.
 
 A public key object can also be computed from a secret key handle:
 
@@ -633,7 +633,7 @@ let raw_sig = signature_export(sig_handle, SignatureEncoding::Raw)?;
 
 ## Signature verification
 
-Signature verifiction requires the following steps:
+Signature verification requires the following steps:
 
 1) `signature_verification_state_open()` to create a new state
 2) One of more calls to `signature_verification_state_update()` to absorb a message to be verified
@@ -663,7 +663,7 @@ The `wasi-crypto` symmetric API was designed with the following constraints in m
 In order to do so, it relies on three dedicated object types:
 - a `symmetric_key` object represents a key and an algorithm
 - a `symmetric_state` is created from key, and performs symmetric operations using the underlying algorithm
-- a `symmetric_tag` is an authentication tag, that can be verified without channels using the provided API.
+- a `symmetric_tag` is an authentication tag, that can be verified without side channels using the provided API.
 
 ## Options
 
@@ -919,7 +919,7 @@ If a function is not defined for an algorithm, it MUST unconditionally return an
 ### Hash functions
 
 Hash functions MUST support the following set of operations:
-- `aborb()`
+- `absorb()`
 - `squeeze()`
 
 Example usage:
@@ -985,7 +985,7 @@ If finalization is required, the implementation MUST duplicate the internal stat
 NOTE: Tuple hashing is not required for a WASI-implementation. However, the following pattern SHOULD be used by implementations supporting this type of construction.
 
 Required operations:
-- `aborb()`
+- `absorb()`
 - `squeeze()`
 
 Example usage:
@@ -1030,11 +1030,11 @@ symmetric_state_absorb(state_handle, b"info")?;
 symmetric_state_squeeze(state_handle, &mut subkey)?;
 ```
 
-`aborb()` absorbs the salt of the key information.
+`absorb()` absorbs the salt or the key information.
 
 `squeeze_key()` returns the PRK, whose algorithm type is set to the EXPAND counterpart of the EXTRACT operation.
 
-The absence of an `absorb()` call MUST be equivalent the an empty salt or key information.
+The absence of an `absorb()` call MUST be equivalent to an empty salt or key information.
 
 Multiple calls to `absorb()` MUST be equivalent to a single call with the concatenation of the inputs.
 
@@ -1080,7 +1080,7 @@ symmetric_options_set_u64(options_handle, "opslimit", 5)?;
 symmetric_options_set_u64(options_handle, "parallelism", 8)?;
 
 let state_handle = symmetric_state_open("ARGON2-ID-13", None, Some(options))?;
-symmtric_state_absorb(state_handle, b"password")?;
+symmetric_state_absorb(state_handle, b"password")?;
 
 let pw_str_handle = symmetric_state_squeeze_tag(state_handle)?;
 let mut pw_str = vec![0u8; symmetric_tag_len(pw_str_handle)?];
@@ -1146,7 +1146,7 @@ If a nonce was provided, but doesn't have the expected size, the implementation 
 
 The `nonce` option MAY not be set by a guest application. In that case:
 
-- If random or static nonces can safely be used with the chosen algorithm, the runtime CAN that parameter automatically.
+- If random or static nonces can safely be used with the chosen algorithm, the runtime CAN set that parameter automatically.
 - If this is not the case, it MUST return the `nonce_required` error code.
 
 Nonces MUST NOT be automatically generated for any of the algorithms currently required by this document.
@@ -1166,7 +1166,7 @@ They MUST support the following operations:
 
 Additional operations are algorithm-dependant, and implementations including this type of algorithm MUST document the set of supported operations.
 
-`wasi-crypto` implementers are encouraged to include the `XOODYAK-128` algorithm to exercices an externsive set of operations typically supported by this kind of construction.
+`wasi-crypto` implementers are encouraged to include the `XOODYAK-128` algorithm to exercise an extensive set of operations typically supported by this kind of construction.
 
 Example usage:
 
