@@ -3,7 +3,7 @@
     (use * from $wasi_ephemeral_crypto_common)
     ;;; Generate a new symmetric key for a given algorithm.
     ;;;
-    ;;; `options` can be `None` to use the default parameters, or an algoritm-specific set of parameters to override.
+    ;;; `options` can be `None` to use the default parameters, or an algorithm-specific set of parameters to override.
     ;;;
     ;;; This function may return `unsupported_feature` if key generation is not supported by the host for the chosen algorithm, or `unsupported_algorithm` if the algorithm is not supported by the host.
     (@interface func (export "symmetric_key_generate")
@@ -80,7 +80,7 @@
     ;;; __(optional)__
     ;;; Replace a managed symmetric key.
     ;;;
-    ;;; This function crates a new version of a managed symmetric key, by replacing `$kp_old` with `$kp_new`.
+    ;;; This function creates a new version of a managed symmetric key, by replacing `$kp_old` with `$kp_new`.
     ;;;
     ;;; It does several things:
     ;;;
@@ -134,7 +134,7 @@
         (result $error (expected $symmetric_key (error $crypto_errno)))
     )
 
-    ;;; Create a new state to aborb and produce data using symmetric operations.
+    ;;; Create a new state to absorb and produce data using symmetric operations.
     ;;;
     ;;; The state remains valid after every operation in order to support incremental updates.
     ;;;
@@ -253,7 +253,7 @@
     ;;; ctx.symmetric_options_set_u64(options_handle, "parallelism", 8)?;
     ;;;
     ;;; let state_handle = ctx.symmetric_state_open("ARGON2-ID-13", None, Some(options))?;
-    ;;; ctx.symmtric_state_absorb(state_handle, b"password")?;
+    ;;; ctx.symmetric_state_absorb(state_handle, b"password")?;
     ;;;
     ;;; let pw_str_handle = ctx.symmetric_state_squeeze_tag(state_handle)?;
     ;;; let mut pw_str = vec![0u8; ctx.symmetric_tag_len(pw_str_handle)?];
@@ -414,7 +414,7 @@
     ;;; Use the current state to produce a key for a target algorithm.
     ;;;
     ;;; For extract-then-expand constructions, this returns the PRK.
-    ;;; For session-base authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
+    ;;; For session-based authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
     ;;;
     ;;; `invalid_operation` is returned for algorithms not supporting this operation.
     (@interface func (export "symmetric_state_squeeze_key")

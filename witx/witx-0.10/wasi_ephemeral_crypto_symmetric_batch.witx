@@ -112,7 +112,7 @@
     ;;; list offset.
     ;;; Each tuple contains a size and a $crypto_errno error code.
     ;;; The error code represents the status of the operation and the size is
-    ;;; the actual size of the ciphertext and the tag in the ouput buffer. The
+    ;;; the actual size of the ciphertext and the tag in the output buffer. The
     ;;; size value is only valid if the tuple's error code is `success`.
     ;;;
     ;;; Example usage:
@@ -203,7 +203,7 @@
     ;;; list offset.
     ;;; Each tuple contains a size and a $crypto_errno error code.
     ;;; The error code represents the status of the operation and the size is
-    ;;; the actual size of the decrypted data in the ouput buffer. The size
+    ;;; the actual size of the decrypted data in the output buffer. The size
     ;;; value is only valid if the tuple's error code is `success`.
     ;;;
     (@interface func (export "batch_symmetric_state_decrypt")
@@ -233,7 +233,7 @@
     ;;; list offset.
     ;;; Each tuple contains a size and a $crypto_errno error code.
     ;;; The error code represents the status of the operation and the size is
-    ;;; the actual size of the decrypted data in the ouput buffer. The size
+    ;;; the actual size of the decrypted data in the output buffer. The size
     ;;; value is only valid if the tuple's error code is `success`.
     ;;;
     (@interface func (export "batch_symmetric_state_decrypt_detached")
